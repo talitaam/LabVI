@@ -2,7 +2,7 @@ import requests
 import json
 import time
 
-headers = {"Authorization": "Bearer 0970f15837d77d4d862e5fdde8bf12aff7f14b36"}
+headers = {"Authorization": "Bearer YOUR KEY HERE"}
 
 
 
