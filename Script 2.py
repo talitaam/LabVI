@@ -1,8 +1,10 @@
 import requests
 import json
 import time
+import os
 
-headers = {"Authorization": "Bearer 0970f15837d77d4d862e5fdde8bf12aff7f14b36"}
+
+headers = {"Authorization": "Bearer YOUR KEY HERE"}
 
 
 
@@ -28,7 +30,7 @@ def run_query(json, headers): #Função que executa uma request pela api graphql
 
 query = """
 query example{
-  search (query:"stars:>100",type: REPOSITORY, first:10{AFTER}) {
+  search (query:"stars:>100",type: REPOSITORY, first:20{AFTER}) {
       pageInfo{
        hasNextPage
         endCursor
@@ -59,10 +61,7 @@ query example{
 }
 """
 
-#result = run_query(query)  #executa a função enviando o formato e quais variávies que o json vai retornar
-#cleanJson = result["data"]["search"]
-print("\n\n ------------- Retorno da consulta com graphQL para responder as Questões de 1 a 6 ------------- \n" )
-#print(json.dumps(cleanJson, indent=3)) # imprime o json retornado sem os campos de data, search e nodes e identado
+print("\n\n ------------- Começo da consulta com graphQL para responder as Questões de 1 a 6 ------------- \n" )
 
 finalQuery = query.replace("{AFTER}", "")
 
@@ -79,7 +78,7 @@ nodes = result['data']['search']['nodes']
 next_page  = result["data"]["search"]["pageInfo"]["hasNextPage"]
 
 #paginating
-while (next_page and total_pages < 10):
+while (next_page and total_pages < 50):
     total_pages += 1
     cursor = result["data"]["search"]["pageInfo"]["endCursor"]
     next_query = query.replace("{AFTER}", ", after: \"%s\"" % cursor)
@@ -90,12 +89,27 @@ while (next_page and total_pages < 10):
 
 
 print("\n\n ------------- Retorno da consulta com graphQL para responder as Questões de 1 a 6 ------------- \n" )
-print(nodes)
+#print(nodes)
 
 #saving data
+
+if os.path.exists("repos.csv"):
+  os.remove("repos.csv")
+
+with open("repos.csv", 'w') as the_file:
+        the_file.write("nameWithOwner" + ";" + "createdAt" + ";" + "pullRequests/totalCount" + ";" 
+        + "releases/totalCount" + ";" + "updatedAt" + ";" + "primaryLanguage/name" + ";" 
+        + "closedIssues/totalCount" + ";" + "totalIssues/totalCount" + "\n")
 for node in nodes:
+    if node['primaryLanguage'] is None:
+            primaryLanguage = "none"
+    else:
+        primaryLanguage = str(node['primaryLanguage']['name'])
+
     with open("repos.csv", 'a') as the_file:
-        the_file.write(node['nameWithOwner'] + "\n") 
+        the_file.write(node['nameWithOwner'] + ";" + node['createdAt'] + ";" + str(node['pullRequests']['totalCount']) + ";"
+        + str(node['releases']['totalCount']) + ";" + node['updatedAt'] + ";" + primaryLanguage + ";" 
+        + str(node['closedIssues']['totalCount']) + ";" + str(node['totalIssues']['totalCount']) +  "\n") 
 
 
-
+print("\n\n ------------- Retorno do print com graphQL para responder as Questões de 1 a 6 ------------- \n" )
